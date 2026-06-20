@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}TDEE Calculator — AIppetite{% endblock %}
+
+{% block content %}
+    <h1>TDEE Calculator</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Calculate</button>
+    </form>
+
+    {% if result %}
+        <section class="result">
+            <p>Your BMR is <strong>{{ result.bmr }}</strong> kcal/day.</p>
+            <p>Your TDEE is <strong>{{ result.tdee }}</strong> kcal/day.</p>
+            <p>Eating around this amount should maintain your current weight.</p>
+        </section>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}BMI Calculator — AIppetite{% endblock %}
+
+{% block content %}
+    <h1>BMI Calculator</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Calculate</button>
+    </form>
+
+    {% if result %}
+        <section class="result">
+            <p>Your BMI is <strong>{{ result.bmi }}</strong> ({{ result.category }}).</p>
+            <p>{{ result.interpretation }}</p>
+        </section>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Macro Calculator — AIppetite{% endblock %}
+
+{% block content %}
+    <h1>Macro Calculator</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Calculate</button>
+    </form>
+
+    {% if result %}
+        <section class="result">
+            <p>Target intake: <strong>{{ result.goal_calories }}</strong> kcal/day.</p>
+            <ul>
+                <li>Protein: {{ result.protein_g }} g</li>
+                <li>Carbs: {{ result.carbs_g }} g</li>
+                <li>Fat: {{ result.fat_g }} g</li>
+            </ul>
+        </section>
+    {% endif %}
+{% endblock %}
