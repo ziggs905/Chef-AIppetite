@@ -16,7 +16,11 @@ class RegisterForm(UserCreationForm):
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['weight_kg', 'height_cm', 'age', 'sex', 'activity_level', 'goal', 'allergies']
+        fields = [
+            'weight_kg', 'height_cm', 'age', 'sex', 'activity_level', 'goal',
+            'dietary_tags', 'allergies',
+        ]
         widgets = {
+            'dietary_tags': forms.CheckboxSelectMultiple,
             'allergies': forms.Textarea(attrs={'rows': 3}),
         }

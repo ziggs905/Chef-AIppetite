@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+from recipes.models import Tag
+
 
 class Profile(models.Model):
     class Sex(models.TextChoices):
@@ -26,6 +28,9 @@ class Profile(models.Model):
     sex = models.CharField(max_length=1, choices=Sex.choices, blank=True)
     activity_level = models.CharField(max_length=20, choices=ActivityLevel.choices, blank=True)
     goal = models.CharField(max_length=10, choices=Goal.choices, blank=True)
+    dietary_tags = models.ManyToManyField(
+        Tag, blank=True, limit_choices_to={'category': 'dietary'}, related_name='profiles'
+    )
     allergies = models.TextField(blank=True)
 
     def __str__(self):

@@ -1,0 +1,14 @@
+[
+    {"model": "recipes.tag", "pk": 1, "fields": {"name": "Vegan", "slug": "vegan", "category": "dietary"}},
+    {"model": "recipes.tag", "pk": 2, "fields": {"name": "Vegetarian", "slug": "vegetarian", "category": "dietary"}},
+    {"model": "recipes.tag", "pk": 3, "fields": {"name": "Gluten-Free", "slug": "gluten-free", "category": "dietary"}},
+    {"model": "recipes.tag", "pk": 4, "fields": {"name": "Dairy-Free", "slug": "dairy-free", "category": "dietary"}},
+    {"model": "recipes.tag", "pk": 5, "fields": {"name": "Keto", "slug": "keto", "category": "dietary"}},
+    {"model": "recipes.tag", "pk": 6, "fields": {"name": "Quick Meals", "slug": "quick-meals", "category": "practical"}},
+    {"model": "recipes.tag", "pk": 7, "fields": {"name": "Budget-Friendly", "slug": "budget-friendly", "category": "practical"}},
+    {"model": "recipes.tag", "pk": 8, "fields": {"name": "Meal Prep", "slug": "meal-prep", "category": "practical"}},
+    {"model": "recipes.tag", "pk": 9, "fields": {"name": "High-Protein", "slug": "high-protein", "category": "nutritional"}},
+    {"model": "recipes.tag", "pk": 10, "fields": {"name": "Low-Carb", "slug": "low-carb", "category": "nutritional"}},
+    {"model": "recipes.tag", "pk": 11, "fields": {"name": "Low-Fat", "slug": "low-fat", "category": "nutritional"}},
+    {"model": "recipes.tag", "pk": 12, "fields": {"name": "High-Fiber", "slug": "high-fiber", "category": "nutritional"}}
+]
