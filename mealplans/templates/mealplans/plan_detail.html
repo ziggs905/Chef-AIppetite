@@ -4,14 +4,24 @@
 
 {% block content %}
     <h1>{{ plan.name }}</h1>
-    <p>Daily target: {{ plan.target_calories }} kcal</p>
+    <p>
+        Daily target: {{ plan.target_calories }} kcal ·
+        {{ plan.target_protein_g }}g protein · {{ plan.target_carbs_g }}g carbs · {{ plan.target_fat_g }}g fat
+    </p>
+    <p>
+        Split: Breakfast {{ plan.breakfast_pct }}% · Lunch {{ plan.lunch_pct }}% ·
+        Dinner {{ plan.dinner_pct }}% · Snack {{ plan.snack_pct }}%
+    </p>
 
     <table class="plan-grid">
         <thead>
             <tr>
                 <th>Day</th>
-                {% for slot in meal_slots %}
-                    <th>{{ slot|title }}</th>
+                {% for header in slot_headers %}
+                    <th>
+                        {{ header.meal_slot|title }}
+                        <div class="recipe-meta">{{ header.target.calories }} kcal target</div>
+                    </th>
                 {% endfor %}
                 <th>Total</th>
             </tr>
@@ -20,15 +30,21 @@
             {% for day in days %}
                 <tr>
                     <td>{{ day.name }}</td>
-                    {% for slot_entry in day.slots %}
+                    {% for slot in day.slots %}
                         <td>
-                            {% if slot_entry %}
-                                <a href="{% url 'recipe_detail' slot_entry.recipe.pk %}">{{ slot_entry.recipe.title }}</a>
-                                <span class="recipe-meta">{{ slot_entry.recipe.calories }} kcal</span>
-                                <form method="post" action="{% url 'plan_entry_swap' plan.pk slot_entry.pk %}" class="swap-form">
+                            {% if slot.entry %}
+                                <a href="{% url 'recipe_detail' slot.entry.recipe.pk %}">{{ slot.entry.recipe.title }}</a>
+                                <span class="recipe-meta">{{ slot.entry.recipe.calories }} kcal</span>
+                                <form method="post" action="{% url 'plan_entry_swap' plan.pk slot.entry.pk %}" class="swap-form">
                                     {% csrf_token %}
-                                    {{ slot_entry.swap_form.recipe }}
+                                    {{ slot.entry.swap_form.recipe }}
                                     <button type="submit">Swap</button>
+                                </form>
+                            {% else %}
+                                <p class="empty-state">No {{ slot.meal_slot }} recipes.</p>
+                                <form method="post" action="{% url 'plan_fill_entry' plan.pk day.index slot.meal_slot %}">
+                                    {% csrf_token %}
+                                    <button type="submit">Generate a {{ slot.meal_slot }} recipe</button>
                                 </form>
                             {% endif %}
                         </td>
@@ -41,6 +57,29 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <h2>Recipes by meal</h2>
+    {% for group in meal_groups %}
+        <section class="meal-group">
+            <h3>{{ group.meal_slot|title }} <span class="recipe-meta">target {{ group.target.calories }} kcal</span></h3>
+            {% if group.recipes %}
+                <ul class="recipe-list">
+                    {% for recipe in group.recipes %}
+                        <li>
+                            <a href="{% url 'recipe_detail' recipe.pk %}">{{ recipe.title }}</a>
+                            <span class="recipe-meta">{{ recipe.calories }} kcal</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="empty-state">No {{ group.meal_slot }} recipes yet.</p>
+            {% endif %}
+            <form method="post" action="{% url 'plan_generate_slot_recipe' plan.pk group.meal_slot %}">
+                {% csrf_token %}
+                <button type="submit">Generate {{ group.meal_slot }} recipe</button>
+            </form>
+        </section>
+    {% endfor %}
 
     <p><a href="{% url 'plan_delete' plan.pk %}">Delete this plan</a></p>
 {% endblock %}

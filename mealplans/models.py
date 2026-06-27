@@ -10,6 +10,13 @@ class WeeklyPlan(models.Model):
     name = models.CharField(max_length=100)
     start_date = models.DateField()
     target_calories = models.PositiveIntegerField()
+    target_protein_g = models.FloatField(default=0)
+    target_carbs_g = models.FloatField(default=0)
+    target_fat_g = models.FloatField(default=0)
+    breakfast_pct = models.PositiveIntegerField(default=25)
+    lunch_pct = models.PositiveIntegerField(default=35)
+    dinner_pct = models.PositiveIntegerField(default=30)
+    snack_pct = models.PositiveIntegerField(default=10)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -1,16 +1,18 @@
 from django.contrib.auth.decorators import login_required
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.models import Profile
+from aiengine.services import generate_and_save_recipe
 from nutrition.services import compute_daily_targets, profile_is_complete
+from recipes.models import Recipe
 
 from .forms import SwapRecipeForm, WeeklyPlanForm
-from .models import WeeklyPlan
-from .services import EmptyRecipeLibraryError, generate_plan_entries
+from .models import PlanEntry, WeeklyPlan
+from .services import EmptyRecipeLibraryError, MEAL_SLOTS, generate_plan_entries, plan_slot_targets
 
 DAYS = range(7)
 DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-MEAL_SLOTS = ['breakfast', 'lunch', 'dinner', 'snack']
 
 
 @login_required
@@ -30,9 +32,13 @@ def plan_create(request):
     elif request.method == 'POST':
         form = WeeklyPlanForm(request.POST)
         if form.is_valid():
+            targets = compute_daily_targets(profile)
             plan = form.save(commit=False)
             plan.owner = request.user
-            plan.target_calories = compute_daily_targets(profile)['calories']
+            plan.target_calories = targets['calories']
+            plan.target_protein_g = targets['protein_g']
+            plan.target_carbs_g = targets['carbs_g']
+            plan.target_fat_g = targets['fat_g']
             plan.save()
             try:
                 generate_plan_entries(plan)
@@ -52,7 +58,7 @@ def plan_detail(request, pk):
     plan = get_object_or_404(WeeklyPlan, pk=pk, owner=request.user)
     entries = list(plan.entries.select_related('recipe'))
     for entry in entries:
-        entry.swap_form = SwapRecipeForm(instance=entry, owner=request.user)
+        entry.swap_form = SwapRecipeForm(instance=entry, owner=request.user, meal_slot=entry.meal_slot)
 
     grid = {day: {} for day in DAYS}
     day_totals = {day: 0 for day in DAYS}
@@ -62,15 +68,27 @@ def plan_detail(request, pk):
 
     days = [
         {
+            'index': day,
             'name': DAY_NAMES[day],
-            'slots': [grid[day].get(slot) for slot in MEAL_SLOTS],
+            'slots': [{'meal_slot': slot, 'entry': grid[day].get(slot)} for slot in MEAL_SLOTS],
             'total': day_totals[day],
         }
         for day in DAYS
     ]
 
+    slot_headers = [{'meal_slot': slot, 'target': plan_slot_targets(plan, slot)} for slot in MEAL_SLOTS]
+
+    meal_groups = [
+        {
+            'meal_slot': slot,
+            'target': plan_slot_targets(plan, slot),
+            'recipes': Recipe.objects.filter(owner=request.user, meal_type=slot),
+        }
+        for slot in MEAL_SLOTS
+    ]
+
     return render(request, 'mealplans/plan_detail.html', {
-        'plan': plan, 'days': days, 'meal_slots': MEAL_SLOTS,
+        'plan': plan, 'days': days, 'slot_headers': slot_headers, 'meal_groups': meal_groups,
     })
 
 
@@ -88,7 +106,33 @@ def plan_entry_swap(request, pk, entry_pk):
     plan = get_object_or_404(WeeklyPlan, pk=pk, owner=request.user)
     entry = get_object_or_404(plan.entries, pk=entry_pk)
     if request.method == 'POST':
-        form = SwapRecipeForm(request.POST, instance=entry, owner=request.user)
+        form = SwapRecipeForm(request.POST, instance=entry, owner=request.user, meal_slot=entry.meal_slot)
         if form.is_valid():
             form.save()
+    return redirect('plan_detail', pk=plan.pk)
+
+
+@login_required
+def plan_generate_slot_recipe(request, pk, meal_slot):
+    plan = get_object_or_404(WeeklyPlan, pk=pk, owner=request.user)
+    if meal_slot not in MEAL_SLOTS:
+        raise Http404
+    if request.method == 'POST':
+        profile = Profile.objects.filter(user=request.user).first()
+        targets = plan_slot_targets(plan, meal_slot)
+        generate_and_save_recipe(request.user, profile, targets, meal_slot)
+    return redirect('plan_detail', pk=plan.pk)
+
+
+@login_required
+def plan_fill_entry(request, pk, day, meal_slot):
+    plan = get_object_or_404(WeeklyPlan, pk=pk, owner=request.user)
+    if meal_slot not in MEAL_SLOTS or day not in DAYS:
+        raise Http404
+    if request.method == 'POST' and not plan.entries.filter(day=day, meal_slot=meal_slot).exists():
+        profile = Profile.objects.filter(user=request.user).first()
+        targets = plan_slot_targets(plan, meal_slot)
+        recipe, error = generate_and_save_recipe(request.user, profile, targets, meal_slot)
+        if recipe:
+            PlanEntry.objects.create(plan=plan, day=day, meal_slot=meal_slot, recipe=recipe)
     return redirect('plan_detail', pk=plan.pk)
