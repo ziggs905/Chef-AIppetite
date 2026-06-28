@@ -47,3 +47,11 @@ def plan_slot_targets(plan, meal_slot):
         'carbs_g': round(plan.target_carbs_g * fraction, 1),
         'fat_g': round(plan.target_fat_g * fraction, 1),
     }
+
+
+def plan_adherence_pct(plan):
+    total = plan.entries.count()
+    if total == 0:
+        return 0
+    completed = plan.entries.filter(completed=True).count()
+    return round(completed / total * 100)

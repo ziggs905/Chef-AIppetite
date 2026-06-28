@@ -129,6 +129,12 @@ a:hover {
     margin-top: 0.4rem;
 }
 
+.completed-label {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
+}
+
 .ingredient-row {
     border-top: 1px solid var(--color-border);
     padding-top: 0.5rem;

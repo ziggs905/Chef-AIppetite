@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from accounts.models import Profile
 from aiengine.services import generate_and_save_recipe
@@ -9,7 +10,13 @@ from recipes.models import Recipe
 
 from .forms import SwapRecipeForm, WeeklyPlanForm
 from .models import PlanEntry, WeeklyPlan
-from .services import EmptyRecipeLibraryError, MEAL_SLOTS, generate_plan_entries, plan_slot_targets
+from .services import (
+    EmptyRecipeLibraryError,
+    MEAL_SLOTS,
+    generate_plan_entries,
+    plan_adherence_pct,
+    plan_slot_targets,
+)
 
 DAYS = range(7)
 DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -89,6 +96,7 @@ def plan_detail(request, pk):
 
     return render(request, 'mealplans/plan_detail.html', {
         'plan': plan, 'days': days, 'slot_headers': slot_headers, 'meal_groups': meal_groups,
+        'adherence_pct': plan_adherence_pct(plan),
     })
 
 
@@ -136,3 +144,13 @@ def plan_fill_entry(request, pk, day, meal_slot):
         if recipe:
             PlanEntry.objects.create(plan=plan, day=day, meal_slot=meal_slot, recipe=recipe)
     return redirect('plan_detail', pk=plan.pk)
+
+
+@login_required
+@require_POST
+def plan_entry_toggle_completed(request, pk, entry_pk):
+    plan = get_object_or_404(WeeklyPlan, pk=pk, owner=request.user)
+    entry = get_object_or_404(plan.entries, pk=entry_pk)
+    entry.completed = not entry.completed
+    entry.save(update_fields=['completed'])
+    return JsonResponse({'completed': entry.completed, 'adherence_pct': plan_adherence_pct(plan)})

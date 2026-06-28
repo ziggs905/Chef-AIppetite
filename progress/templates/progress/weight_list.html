@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Progress — AIppetite{% endblock %}
+
+{% block content %}
+    <h1>Weight Progress</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Add entry</button>
+    </form>
+
+    {% if entries %}
+        <canvas id="weight-chart" height="100"></canvas>
+        {{ chart_data|json_script:"chart-data" }}
+
+        <h2>Entries</h2>
+        <ul class="recipe-list">
+            {% for entry in entries %}
+                <li>{{ entry.date }} — {{ entry.weight_kg }} kg</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="empty-state">No weight entries yet.</p>
+    {% endif %}
+
+    <h2>Meal Plan Adherence</h2>
+    {% if plan_adherence %}
+        <ul class="recipe-list">
+            {% for item in plan_adherence %}
+                <li>
+                    <a href="{% url 'plan_detail' item.plan.pk %}">{{ item.plan.name }}</a>
+                    <span class="recipe-meta">{{ item.adherence_pct }}% complete</span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="empty-state">No meal plans yet.</p>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'js/progress.js' %}"></script>
+{% endblock %}

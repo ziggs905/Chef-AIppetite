@@ -9,6 +9,11 @@ urlpatterns = [
     path('mealplans/<int:pk>/delete/', views.plan_delete, name='plan_delete'),
     path('mealplans/<int:pk>/entries/<int:entry_pk>/swap/', views.plan_entry_swap, name='plan_entry_swap'),
     path(
+        'mealplans/<int:pk>/entries/<int:entry_pk>/toggle-completed/',
+        views.plan_entry_toggle_completed,
+        name='plan_entry_toggle_completed',
+    ),
+    path(
         'mealplans/<int:pk>/generate/<str:meal_slot>/',
         views.plan_generate_slot_recipe,
         name='plan_generate_slot_recipe',
