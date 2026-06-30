@@ -26,5 +26,6 @@ urlpatterns = [
     path('', include('cookbooks.urls')),
     path('', include('mealplans.urls')),
     path('', include('progress.urls')),
+    path('', include('shopping.urls')),
     path('', include('core.urls')),
 ]

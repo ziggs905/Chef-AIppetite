@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ shopping_list.name }} — AIppetite{% endblock %}
+
+{% block content %}
+    <h1>{{ shopping_list.name }}</h1>
+
+    {% if items %}
+        <ul class="recipe-list">
+            {% for item in items %}
+                <li>
+                    <label>
+                        <input
+                            type="checkbox"
+                            class="shopping-item-checkbox"
+                            data-list-id="{{ shopping_list.pk }}"
+                            data-item-id="{{ item.pk }}"
+                            {% if item.checked %}checked{% endif %}
+                        >
+                        {{ item.quantity }} {{ item.unit }} {{ item.name }}
+                    </label>
+                    <a href="{% url 'shopping_item_edit' shopping_list.pk item.pk %}">Edit</a>
+                    <form method="post" action="{% url 'shopping_item_delete' shopping_list.pk item.pk %}" class="inline-form">
+                        {% csrf_token %}
+                        <button type="submit">Remove</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="empty-state">No items yet.</p>
+    {% endif %}
+
+    <h2>Add an item</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Add item</button>
+    </form>
+
+    <p>
+        <a href="{% url 'shopping_list_delete' shopping_list.pk %}">Delete this list</a>
+        · <a href="{% url 'shopping_list_index' %}">Back to my shopping lists</a>
+    </p>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/shopping.js' %}"></script>
+{% endblock %}

@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'cookbooks',
     'mealplans',
     'progress',
+    'shopping',
 ]
 
 MIDDLEWARE = [

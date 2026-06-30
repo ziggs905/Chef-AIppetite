@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Lists — AIppetite{% endblock %}
+
+{% block content %}
+    <h1>My Shopping Lists</h1>
+
+    {% if shopping_lists %}
+        <ul class="recipe-list">
+            {% for shopping_list in shopping_lists %}
+                <li>
+                    <a href="{% url 'shopping_list_detail' shopping_list.pk %}">{{ shopping_list.name }}</a>
+                    <span class="recipe-meta">{{ shopping_list.items.count }} items</span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="empty-state">
+            No shopping lists yet. Generate one from a <a href="{% url 'plan_list' %}">meal plan</a>.
+        </p>
+    {% endif %}
+{% endblock %}

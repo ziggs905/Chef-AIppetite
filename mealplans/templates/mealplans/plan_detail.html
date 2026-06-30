@@ -93,6 +93,11 @@
         </section>
     {% endfor %}
 
+    <form method="post" action="{% url 'shopping_list_generate' plan.pk %}">
+        {% csrf_token %}
+        <button type="submit">Generate shopping list</button>
+    </form>
+
     <p><a href="{% url 'plan_delete' plan.pk %}">Delete this plan</a></p>
 {% endblock %}
 
