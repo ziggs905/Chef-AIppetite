@@ -1,11 +1,83 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Welcome — AIppetite{% endblock %}
+{% block title %}Dashboard — AIppetite{% endblock %}
 
 {% block content %}
-    <section class="hero">
-        <h1>Welcome to AIppetite</h1>
-        <p>Your AI-powered personal chef and dietitian. Enter your metrics and
-        goals, get recipes with balanced macros, and plan your week.</p>
-    </section>
+    <h1>Welcome back, {{ user.username }}</h1>
+
+    <div class="dashboard-grid">
+        <section class="dashboard-card">
+            <h2>Today's Targets</h2>
+            {% if daily_targets %}
+                <p>{{ daily_targets.calories }} kcal</p>
+                <p class="recipe-meta">
+                    {{ daily_targets.protein_g }}g protein · {{ daily_targets.carbs_g }}g carbs ·
+                    {{ daily_targets.fat_g }}g fat
+                </p>
+            {% else %}
+                <p class="empty-state">
+                    Complete your profile to see your targets.
+                    <a href="{% url 'profile_edit' %}">Edit profile</a>
+                </p>
+            {% endif %}
+        </section>
+
+        <section class="dashboard-card">
+            <h2>Weight Progress</h2>
+            {% if latest_weight %}
+                <p>{{ latest_weight.weight_kg }} kg <span class="recipe-meta">on {{ latest_weight.date }}</span></p>
+                <canvas id="dashboard-weight-chart" height="80"></canvas>
+                {{ chart_data|json_script:"dashboard-chart-data" }}
+            {% else %}
+                <p class="empty-state">
+                    No weight entries yet. <a href="{% url 'weight_list' %}">Add one</a>.
+                </p>
+            {% endif %}
+        </section>
+
+        <section class="dashboard-card">
+            <h2>Favorite Recipes</h2>
+            {% if favorite_recipes %}
+                <ul class="recipe-list">
+                    {% for recipe in favorite_recipes %}
+                        <li><a href="{% url 'recipe_detail' recipe.pk %}">{{ recipe.title }}</a></li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="empty-state">
+                    No favorites yet. <a href="{% url 'recipe_list' %}">Browse your recipes</a>.
+                </p>
+            {% endif %}
+        </section>
+
+        <section class="dashboard-card">
+            <h2>Active Meal Plan</h2>
+            {% if active_plan %}
+                <p><a href="{% url 'plan_detail' active_plan.pk %}">{{ active_plan.name }}</a></p>
+                <p class="recipe-meta">{{ active_plan_adherence }}% complete</p>
+            {% else %}
+                <p class="empty-state">
+                    No meal plans yet. <a href="{% url 'plan_create' %}">Create one</a>.
+                </p>
+            {% endif %}
+        </section>
+    </div>
+
+    <h2>Quick Links</h2>
+    <ul class="quick-links">
+        <li><a href="{% url 'generate_recipe' %}">Generate a Recipe</a></li>
+        <li><a href="{% url 'recipe_list' %}">My Recipes</a></li>
+        <li><a href="{% url 'plan_list' %}">Meal Plans</a></li>
+        <li><a href="{% url 'shopping_list_index' %}">Shopping Lists</a></li>
+        <li><a href="{% url 'cookbook_list' %}">Cookbooks</a></li>
+        <li><a href="{% url 'weight_list' %}">Progress</a></li>
+    </ul>
+{% endblock %}
+
+{% block extra_js %}
+    {% if latest_weight %}
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="{% static 'js/dashboard.js' %}"></script>
+    {% endif %}
 {% endblock %}

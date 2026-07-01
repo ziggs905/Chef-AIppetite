@@ -15,6 +15,7 @@
     </p>
     <p>Adherence: <span id="adherence-value">{{ adherence_pct }}</span>%</p>
 
+    <div class="table-scroll">
     <table class="plan-grid">
         <thead>
             <tr>
@@ -69,6 +70,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
 
     <h2>Recipes by meal</h2>
     {% for group in meal_groups %}
