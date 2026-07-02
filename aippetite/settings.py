@@ -36,6 +36,7 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = []
 
 AI_PROVIDER = os.environ.get('AI_PROVIDER', 'mock')
+GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-3.5-flash')
 
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/'

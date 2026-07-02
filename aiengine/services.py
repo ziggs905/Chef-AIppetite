@@ -2,7 +2,7 @@ from recipes.models import Ingredient, Recipe, Tag
 
 from .parsing import RecipeParseError, parse_recipe
 from .prompts import build_recipe_prompt
-from .providers import get_provider
+from .providers import ProviderError, get_provider
 
 
 def generate_and_save_recipe(user, profile, targets, meal_type, preferences=''):
@@ -11,7 +11,11 @@ def generate_and_save_recipe(user, profile, targets, meal_type, preferences=''):
     Returns (recipe, error) — exactly one of the two is set.
     """
     prompt = build_recipe_prompt(profile, targets, preferences, meal_type=meal_type)
-    raw_json = get_provider().generate_recipe(prompt)
+    try:
+        raw_json = get_provider().generate_recipe(prompt)
+    except ProviderError as exc:
+        return None, str(exc)
+
     try:
         data = parse_recipe(raw_json)
     except RecipeParseError as exc:

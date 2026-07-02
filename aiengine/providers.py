@@ -4,11 +4,17 @@ import re
 from typing import Protocol
 
 from django.conf import settings
+from google import genai
+from google.genai._gaos.lib import compat_errors as genai_errors
 
 
 class RecipeProvider(Protocol):
     def generate_recipe(self, prompt: str) -> str:
         ...
+
+
+class ProviderError(Exception):
+    pass
 
 
 CANNED_RECIPES = [
@@ -135,7 +141,34 @@ class ClaudeProvider:
         raise NotImplementedError
 
 
+_CODE_FENCE_RE = re.compile(r'^```(?:json)?\s*\n(.*)\n```\s*$', re.DOTALL)
+
+
+class GeminiProvider:
+    def generate_recipe(self, prompt: str) -> str:
+        try:
+            client = genai.Client()
+        except ValueError as exc:
+            raise ProviderError('Gemini is not configured correctly: missing or invalid API key.') from exc
+
+        try:
+            response = client.interactions.create(model=settings.GEMINI_MODEL, input=prompt)
+        # client.interactions raises from the private _gaos.lib.compat_errors module, not
+        # the public google.genai.errors module - confirmed by triggering a real API error.
+        except (genai_errors.APIError, genai_errors.NoResponseError) as exc:
+            raise ProviderError(f'Gemini request failed: {exc}') from exc
+
+        if not response.output_text:
+            raise ProviderError('Gemini returned an empty response.')
+
+        # Gemini wraps JSON in a markdown code fence despite the "only JSON" instruction.
+        fence_match = _CODE_FENCE_RE.match(response.output_text.strip())
+        return fence_match.group(1) if fence_match else response.output_text
+
+
 def get_provider() -> RecipeProvider:
+    if settings.AI_PROVIDER == 'gemini':
+        return GeminiProvider()
     if settings.AI_PROVIDER == 'claude':
         return ClaudeProvider()
     return MockProvider()
